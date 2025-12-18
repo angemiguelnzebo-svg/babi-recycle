@@ -1,0 +1,124 @@
+import { useState } from 'react';
+import { Dashboard } from './components/Dashboard';
+import { MapScreen } from './components/MapScreen';
+import { ScannerScreen } from './components/ScannerScreen';
+import { DepositScreen } from './components/DepositScreen';
+import { ConfirmationScreen } from './components/ConfirmationScreen';
+import { StatsScreen } from './components/StatsScreen';
+import { ProfileScreen } from './components/ProfileScreen';
+import { BottomNav } from './components/BottomNav';
+
+type Screen = 'dashboard' | 'map' | 'scanner' | 'deposit' | 'confirmation' | 'stats' | 'profile';
+type Tab = 'home' | 'map' | 'stats' | 'profile';
+
+export default function App() {
+  const [currentScreen, setCurrentScreen] = useState<Screen>('dashboard');
+  const [activeTab, setActiveTab] = useState<Tab>('home');
+  const [userPoints, setUserPoints] = useState(1250);
+
+  // Simulated deposit data
+  const [lastDeposit] = useState({
+    weight: '3.2kg',
+    type: 'plastique',
+    points: 160
+  });
+
+  const handleScanClick = () => {
+    setCurrentScreen('scanner');
+  };
+
+  const handleScanSuccess = () => {
+    setCurrentScreen('deposit');
+  };
+
+  const handleDepositComplete = () => {
+    setCurrentScreen('confirmation');
+  };
+
+  const handleConfirmation = () => {
+    setUserPoints(prev => prev + lastDeposit.points);
+    setCurrentScreen('dashboard');
+    setActiveTab('home');
+  };
+
+  const handleCancelScan = () => {
+    setCurrentScreen('dashboard');
+  };
+
+  const handleTabChange = (tab: Tab) => {
+    setActiveTab(tab);
+    switch (tab) {
+      case 'home':
+        setCurrentScreen('dashboard');
+        break;
+      case 'map':
+        setCurrentScreen('map');
+        break;
+      case 'stats':
+        setCurrentScreen('stats');
+        break;
+      case 'profile':
+        setCurrentScreen('profile');
+        break;
+    }
+  };
+
+  // Hide bottom nav for certain screens
+  const showBottomNav = !['scanner', 'deposit', 'confirmation'].includes(currentScreen);
+
+  return (
+    <div className="flex items-center justify-center min-h-screen bg-gray-900">
+      {/* Mobile Frame */}
+      <div className="relative w-[360px] h-[640px] bg-white rounded-3xl shadow-2xl overflow-hidden flex flex-col">
+        {/* Screen Content */}
+        <div className="flex-1 overflow-hidden">
+          {currentScreen === 'dashboard' && (
+            <Dashboard
+              onScanClick={handleScanClick}
+              userName="Amadou"
+              points={userPoints}
+              fcfa={userPoints * 5}
+            />
+          )}
+          
+          {currentScreen === 'map' && <MapScreen />}
+          
+          {currentScreen === 'scanner' && (
+            <ScannerScreen
+              onCancel={handleCancelScan}
+              onScanSuccess={handleScanSuccess}
+            />
+          )}
+          
+          {currentScreen === 'deposit' && (
+            <DepositScreen onComplete={handleDepositComplete} />
+          )}
+          
+          {currentScreen === 'confirmation' && (
+            <ConfirmationScreen
+              onConfirm={handleConfirmation}
+              pointsEarned={lastDeposit.points}
+              weight={lastDeposit.weight}
+              wasteType={lastDeposit.type}
+            />
+          )}
+          
+          {currentScreen === 'stats' && <StatsScreen />}
+          
+          {currentScreen === 'profile' && (
+            <ProfileScreen
+              userName="Amadou Diallo"
+              userEmail="amadou.diallo@email.com"
+              points={userPoints}
+            />
+          )}
+        </div>
+
+        {/* Bottom Navigation */}
+        {showBottomNav && (
+          <BottomNav activeTab={activeTab} onTabChange={handleTabChange} />
+        )}
+      </div>
+    </div>
+  );
+}
